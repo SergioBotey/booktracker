@@ -39,6 +39,8 @@ public class ExceptionHandlingMiddleware
 
         var statusCode = exception switch
         {
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            KeyNotFoundException => StatusCodes.Status404NotFound,
             InvalidOperationException => StatusCodes.Status400BadRequest,
             _ => StatusCodes.Status500InternalServerError
         };
@@ -49,8 +51,10 @@ public class ExceptionHandlingMiddleware
         {
             StatusCode = statusCode,
             Message = exception is InvalidOperationException
-                ? exception.Message
-                : "An unexpected error occurred.",
+                or UnauthorizedAccessException
+                or KeyNotFoundException
+                    ? exception.Message
+                    : "An unexpected error occurred.",
             Details = _environment.IsDevelopment() ? exception.Message : null,
             TraceId = context.TraceIdentifier
         };
