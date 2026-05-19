@@ -60,6 +60,50 @@ public class BookService : IBookService
         return MapToResponse(book);
     }
 
+    public async Task<BookResponse> UpdateAsync(
+        int userId,
+        int bookId,
+        UpdateBookRequest request)
+    {
+        var book = await _bookRepository.GetTrackedByIdAndUserIdAsync(bookId, userId);
+
+        if (book is null)
+        {
+            throw new KeyNotFoundException("Book not found.");
+        }
+
+        book.Title = request.Title.Trim();
+        book.Author = request.Author.Trim();
+        book.Genre = request.Genre?.Trim();
+        book.Description = request.Description?.Trim();
+        book.CoverUrl = request.CoverUrl?.Trim();
+        book.Status = request.Status;
+        book.Rating = request.Rating;
+        book.PageCount = request.PageCount;
+        book.StartDate = request.StartDate;
+        book.EndDate = request.EndDate;
+        book.Notes = request.Notes?.Trim();
+        book.UpdatedAt = DateTime.UtcNow;
+
+        await _bookRepository.SaveChangesAsync();
+
+        return MapToResponse(book);
+    }
+
+    public async Task DeleteAsync(int userId, int bookId)
+    {
+        var book = await _bookRepository.GetTrackedByIdAndUserIdAsync(bookId, userId);
+
+        if (book is null)
+        {
+            throw new KeyNotFoundException("Book not found.");
+        }
+
+        _bookRepository.Delete(book);
+
+        await _bookRepository.SaveChangesAsync();
+    }
+
     private static BookResponse MapToResponse(Book book)
     {
         return new BookResponse

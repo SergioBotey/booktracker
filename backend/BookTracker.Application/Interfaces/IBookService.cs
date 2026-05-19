@@ -12,4 +12,12 @@ public interface IBookService
     );
 
     Task<BookResponse> GetByIdAsync(int userId, int bookId);
+
+    Task<BookResponse> UpdateAsync(
+        int userId,
+        int bookId,
+        UpdateBookRequest request
+    );
+
+    Task DeleteAsync(int userId, int bookId);
 }

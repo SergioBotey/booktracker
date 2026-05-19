@@ -15,13 +15,16 @@ public class BooksController : ControllerBase
 {
     private readonly IBookService _bookService;
     private readonly IValidator<CreateBookRequest> _createBookValidator;
+    private readonly IValidator<UpdateBookRequest> _updateBookValidator;
 
     public BooksController(
         IBookService bookService,
-        IValidator<CreateBookRequest> createBookValidator)
+        IValidator<CreateBookRequest> createBookValidator,
+        IValidator<UpdateBookRequest> updateBookValidator)
     {
         _bookService = bookService;
         _createBookValidator = createBookValidator;
+        _updateBookValidator = updateBookValidator;
     }
 
     [HttpGet]
@@ -51,20 +54,9 @@ public class BooksController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            var errors = validationResult.Errors
-                .GroupBy(error => error.PropertyName)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group.Select(error => error.ErrorMessage).ToArray()
-                );
-
-            return BadRequest(new ApiValidationErrorResponse
-            {
-                StatusCode = StatusCodes.Status400BadRequest,
-                Message = "Validation failed.",
-                Errors = errors,
-                TraceId = HttpContext.TraceIdentifier
-            });
+            return BadRequest(
+                ValidationResponseFactory.Create(validationResult, HttpContext)
+            );
         }
 
         var userId = User.GetUserId();
@@ -72,5 +64,34 @@ public class BooksController : ControllerBase
         var response = await _bookService.CreateAsync(userId, request);
 
         return StatusCode(StatusCodes.Status201Created, response);
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, UpdateBookRequest request)
+    {
+        var validationResult = await _updateBookValidator.ValidateAsync(request);
+
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(
+                ValidationResponseFactory.Create(validationResult, HttpContext)
+            );
+        }
+
+        var userId = User.GetUserId();
+
+        var response = await _bookService.UpdateAsync(userId, id, request);
+
+        return Ok(response);
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var userId = User.GetUserId();
+
+        await _bookService.DeleteAsync(userId, id);
+
+        return NoContent();
     }
 }

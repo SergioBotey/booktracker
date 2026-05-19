@@ -68,6 +68,20 @@ public class BookRepository : IBookRepository
             );
     }
 
+    public async Task<Book?> GetTrackedByIdAndUserIdAsync(int bookId, int userId)
+    {
+        return await _context.Books
+            .FirstOrDefaultAsync(book =>
+                book.Id == bookId &&
+                book.UserId == userId
+            );
+    }
+
+    public void Delete(Book book)
+    {
+        _context.Books.Remove(book);
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

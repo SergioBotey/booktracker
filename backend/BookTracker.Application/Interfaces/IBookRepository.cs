@@ -14,5 +14,9 @@ public interface IBookRepository
 
     Task<Book?> GetByIdAndUserIdAsync(int bookId, int userId);
 
+    Task<Book?> GetTrackedByIdAndUserIdAsync(int bookId, int userId);
+
+    void Delete(Book book);
+
     Task SaveChangesAsync();
 }
