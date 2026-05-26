@@ -44,6 +44,20 @@ export interface CreateBookRequest {
   notes?: string;
 }
 
+export interface UpdateBookRequest {
+  title: string;
+  author: string;
+  genre?: string;
+  description?: string;
+  coverUrl?: string;
+  status: ReadingStatus;
+  rating?: BookRating | null;
+  pageCount?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  notes?: string;
+}
+
 export interface BookFilterRequest {
   search?: string;
   genre?: string;

@@ -29,3 +29,29 @@ export function getRatingStars(rating?: BookRating | null): string {
 
   return "★".repeat(rating) + "☆".repeat(5 - rating);
 }
+
+export function formatDate(value?: string | null): string {
+  if (!value) {
+    return "No definido";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "No definido";
+  }
+
+  return new Intl.DateTimeFormat("es-PE", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  }).format(date);
+}
+
+export function formatPageCount(pageCount?: number | null): string {
+  if (!pageCount) {
+    return "Sin páginas";
+  }
+
+  return `${pageCount} páginas`;
+}

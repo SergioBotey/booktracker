@@ -13,6 +13,7 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IBookService, BookService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         return services;
     }

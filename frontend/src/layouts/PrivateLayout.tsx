@@ -3,7 +3,7 @@ import { clearAuthStorage, getStoredUser } from "../utils/authStorage";
 import type { User } from "../types/auth";
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard" },
+  { to: "/dashboard", label: "Resumen" },
   { to: "/books", label: "Biblioteca" },
 ];
 

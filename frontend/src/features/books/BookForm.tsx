@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   BookRating,
   ReadingStatus,
+  type Book,
   type CreateBookRequest,
 } from "../../types/book";
 import {
@@ -11,11 +13,26 @@ import {
 } from "./bookSchemas";
 
 interface BookFormProps {
+  initialBook?: Book | null;
+  submitLabel?: string;
   onSubmit: (values: CreateBookRequest) => Promise<void>;
   isSubmitting?: boolean;
 }
 
-export function BookForm({ onSubmit, isSubmitting }: BookFormProps) {
+function toDateInputValue(value?: string | null): string {
+  if (!value) {
+    return "";
+  }
+
+  return value.slice(0, 10);
+}
+
+export function BookForm({
+  initialBook,
+  submitLabel = "Guardar libro",
+  onSubmit,
+  isSubmitting,
+}: BookFormProps) {
   const {
     register,
     handleSubmit,
@@ -38,6 +55,40 @@ export function BookForm({ onSubmit, isSubmitting }: BookFormProps) {
     },
   });
 
+  useEffect(() => {
+    if (!initialBook) {
+      reset({
+        title: "",
+        author: "",
+        genre: "",
+        description: "",
+        coverUrl: "",
+        status: String(ReadingStatus.Pending),
+        rating: "",
+        pageCount: "",
+        startDate: "",
+        endDate: "",
+        notes: "",
+      });
+
+      return;
+    }
+
+    reset({
+      title: initialBook.title,
+      author: initialBook.author,
+      genre: initialBook.genre || "",
+      description: initialBook.description || "",
+      coverUrl: initialBook.coverUrl || "",
+      status: String(initialBook.status),
+      rating: initialBook.rating ? String(initialBook.rating) : "",
+      pageCount: initialBook.pageCount ? String(initialBook.pageCount) : "",
+      startDate: toDateInputValue(initialBook.startDate),
+      endDate: toDateInputValue(initialBook.endDate),
+      notes: initialBook.notes || "",
+    });
+  }, [initialBook, reset]);
+
   async function handleFormSubmit(values: CreateBookFormValues) {
     await onSubmit({
       title: values.title.trim(),
@@ -53,7 +104,9 @@ export function BookForm({ onSubmit, isSubmitting }: BookFormProps) {
       notes: values.notes?.trim() || undefined,
     });
 
-    reset();
+    if (!initialBook) {
+      reset();
+    }
   }
 
   return (
@@ -213,7 +266,7 @@ export function BookForm({ onSubmit, isSubmitting }: BookFormProps) {
         disabled={isSubmitting}
         className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? "Guardando..." : "Guardar libro"}
+        {isSubmitting ? "Guardando..." : submitLabel}
       </button>
     </form>
   );
