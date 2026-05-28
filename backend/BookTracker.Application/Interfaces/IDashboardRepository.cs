@@ -5,4 +5,9 @@ namespace BookTracker.Application.Interfaces;
 public interface IDashboardRepository
 {
     Task<DashboardSummaryResponse> GetSummaryAsync(int userId);
+
+    Task<IReadOnlyList<RecentBookResponse>> GetRecentBooksAsync(
+        int userId,
+        int limit
+    );
 }

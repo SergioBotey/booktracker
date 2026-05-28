@@ -59,4 +59,26 @@ public class DashboardRepository : IDashboardRepository
             TotalPagesRead = totalPagesRead
         };
     }
+
+    public async Task<IReadOnlyList<RecentBookResponse>> GetRecentBooksAsync(
+        int userId,
+        int limit)
+    {
+        return await _context.Books
+            .AsNoTracking()
+            .Where(book => book.UserId == userId)
+            .OrderByDescending(book => book.CreatedAt)
+            .Take(limit)
+            .Select(book => new RecentBookResponse
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                Genre = book.Genre,
+                Status = book.Status,
+                Rating = book.Rating,
+                CreatedAt = book.CreatedAt
+            })
+            .ToListAsync();
+    }
 }

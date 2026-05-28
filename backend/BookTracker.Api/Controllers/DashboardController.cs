@@ -26,4 +26,14 @@ public class DashboardController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpGet("recent-books")]
+    public async Task<IActionResult> GetRecentBooks([FromQuery] int limit = 5)
+    {
+        var userId = User.GetUserId();
+
+        var response = await _dashboardService.GetRecentBooksAsync(userId, limit);
+
+        return Ok(response);
+    }
 }

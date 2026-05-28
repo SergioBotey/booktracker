@@ -4,8 +4,11 @@ namespace BookTracker.Domain.Entities;
 
 public class ReadingGoal : AuditableEntity
 {
-    public int UserId {get; set; }
-    public int Year {get; set; }
-    public int TargetBooks {get; set;}
-    public User User {get; set;} = null!;
+    public int UserId { get; set; }
+
+    public int Year { get; set; }
+
+    public int TargetBooks { get; set; }
+
+    public User User { get; set; } = null!;
 }
