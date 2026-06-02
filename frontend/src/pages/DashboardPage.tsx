@@ -1,24 +1,47 @@
 import { useEffect, useState } from "react";
-import { getDashboardSummary } from "../api/dashboardApi";
+import {
+  getDashboardSummary,
+  getRecentBooks,
+} from "../api/dashboardApi";
+import {
+  createReadingGoal,
+  getCurrentReadingGoal,
+  updateReadingGoal,
+} from "../api/readingGoalsApi";
 import { DashboardEmptyState } from "../features/dashboard/DashboardEmptyState";
 import { DashboardMetricCard } from "../features/dashboard/DashboardMetricCard";
 import { ReadingStatusSummary } from "../features/dashboard/ReadingStatusSummary";
-import type { DashboardSummary } from "../types/dashboard";
+import { RecentBooksCard } from "../features/dashboard/RecentBooksCard";
+import { ReadingGoalCard } from "../features/readingGoals/ReadingGoalCard";
+import type {
+  DashboardSummary,
+  RecentBook,
+} from "../types/dashboard";
+import type { ReadingGoal } from "../types/readingGoal";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
 export function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [recentBooks, setRecentBooks] = useState<RecentBook[]>([]);
+  const [readingGoal, setReadingGoal] = useState<ReadingGoal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadDashboardSummary() {
+  async function loadDashboard() {
     try {
       setError(null);
       setIsLoading(true);
 
-      const data = await getDashboardSummary();
+      const [summaryData, recentBooksData, readingGoalData] = await Promise.all([
+        getDashboardSummary(),
+        getRecentBooks(5),
+        getCurrentReadingGoal(),
+      ]);
 
-      setSummary(data);
+      setSummary(summaryData);
+      setRecentBooks(recentBooksData);
+      setReadingGoal(readingGoalData);
     } catch (error) {
       setError(getApiErrorMessage(error));
     } finally {
@@ -26,8 +49,49 @@ export function DashboardPage() {
     }
   }
 
+  async function handleCreateReadingGoal(targetBooks: number) {
+    try {
+      setError(null);
+      setIsSavingGoal(true);
+
+      const currentYear = new Date().getFullYear();
+
+      const createdGoal = await createReadingGoal({
+        year: currentYear,
+        targetBooks,
+      });
+
+      setReadingGoal(createdGoal);
+    } catch (error) {
+      setError(getApiErrorMessage(error));
+    } finally {
+      setIsSavingGoal(false);
+    }
+  }
+
+  async function handleUpdateReadingGoal(targetBooks: number) {
+    if (!readingGoal) {
+      return;
+    }
+
+    try {
+      setError(null);
+      setIsSavingGoal(true);
+
+      const updatedGoal = await updateReadingGoal(readingGoal.id, {
+        targetBooks,
+      });
+
+      setReadingGoal(updatedGoal);
+    } catch (error) {
+      setError(getApiErrorMessage(error));
+    } finally {
+      setIsSavingGoal(false);
+    }
+  }
+
   useEffect(() => {
-    loadDashboardSummary();
+    loadDashboard();
   }, []);
 
   const hasBooks = Boolean(summary && summary.totalBooks > 0);
@@ -59,7 +123,14 @@ export function DashboardPage() {
       )}
 
       {!isLoading && summary && !hasBooks && (
-        <div className="mt-6">
+        <div className="mt-6 space-y-6">
+          <ReadingGoalCard
+            goal={readingGoal}
+            isSaving={isSavingGoal}
+            onCreate={handleCreateReadingGoal}
+            onUpdate={handleUpdateReadingGoal}
+          />
+
           <DashboardEmptyState />
         </div>
       )}
@@ -90,6 +161,13 @@ export function DashboardPage() {
             />
           </div>
 
+          <ReadingGoalCard
+            goal={readingGoal}
+            isSaving={isSavingGoal}
+            onCreate={handleCreateReadingGoal}
+            onUpdate={handleUpdateReadingGoal}
+          />
+
           <ReadingStatusSummary summary={summary} />
 
           <div className="grid gap-4 md:grid-cols-4">
@@ -113,6 +191,8 @@ export function DashboardPage() {
               value={summary.abandonedBooks}
             />
           </div>
+
+          <RecentBooksCard books={recentBooks} />
         </div>
       )}
     </div>

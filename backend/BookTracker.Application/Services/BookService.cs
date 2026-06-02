@@ -26,8 +26,8 @@ public class BookService : IBookService
             Status = request.Status,
             Rating = request.Rating,
             PageCount = request.PageCount,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
+            StartDate = NormalizeToUtc(request.StartDate),
+            EndDate = NormalizeToUtc(request.EndDate),
             Notes = request.Notes?.Trim()
         };
 
@@ -80,10 +80,10 @@ public class BookService : IBookService
         book.Status = request.Status;
         book.Rating = request.Rating;
         book.PageCount = request.PageCount;
-        book.StartDate = request.StartDate;
-        book.EndDate = request.EndDate;
-        book.Notes = request.Notes?.Trim();
+        book.StartDate = NormalizeToUtc(request.StartDate);
+        book.EndDate = NormalizeToUtc(request.EndDate);
         book.UpdatedAt = DateTime.UtcNow;
+        book.Notes = request.Notes?.Trim();
 
         await _bookRepository.SaveChangesAsync();
 
@@ -122,6 +122,22 @@ public class BookService : IBookService
             Notes = book.Notes,
             CreatedAt = book.CreatedAt,
             UpdatedAt = book.UpdatedAt
+        };
+    }
+
+    private static DateTime? NormalizeToUtc(DateTime? date)
+    {
+        if (!date.HasValue)
+        {
+            return null;
+        }
+
+        return date.Value.Kind switch
+        {
+            DateTimeKind.Utc => date.Value,
+            DateTimeKind.Local => date.Value.ToUniversalTime(),
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(date.Value, DateTimeKind.Utc),
+            _ => date.Value
         };
     }
 }
